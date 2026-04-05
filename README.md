@@ -1,4 +1,4 @@
-# AURA — Automated Unified Response Architecture
+# AURA - Automated Unified Response Architecture
 
 A multi-agent RAG system that ingests runbooks (PDF/Markdown), converts them into executable incident workflows, and provides automated diagnosis with safe escalation logic.
 
