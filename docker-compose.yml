@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./chroma_data:/app/chroma_data
+      - ./uploads:/app/uploads
+      - ./runbooks:/app/runbooks
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - COHERE_API_KEY=${COHERE_API_KEY}
+      - CHROMA_PERSIST_PATH=/app/chroma_data
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./aura.db}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - PAGERDUTY_ROUTING_KEY=${PAGERDUTY_ROUTING_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    env_file:
+      - .env
+    depends_on:
+      - chromadb
+
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  chroma_data:
+  uploads:
